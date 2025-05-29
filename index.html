@@ -726,6 +726,78 @@
         </div>
     </div>
 
+    <!-- Edit Creator Modal -->
+    <div id="editCreatorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editCreatorModal')">&times;</span>
+            <h2>Edit Creator</h2>
+            <form id="editCreatorForm">
+                <input type="hidden" id="editCreatorId">
+                <div class="form-group">
+                    <label>Creator Handle</label>
+                    <input type="text" id="editCreatorHandle" required>
+                </div>
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="editCreatorPlatform" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="TikTok">TikTok</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Twitter">Twitter</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="editCreatorEmail">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="editCreatorPhone">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="editCreatorAddress">
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="editCreatorPaymentMethod" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="PayPal">PayPal</option>
+                        <option value="Venmo">Venmo</option>
+                        <option value="Zelle">Zelle</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Contact Status</label>
+                    <select id="editCreatorContactStatus" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="contacted">Contacted</option>
+                        <option value="contract-signed">Contract Signed</option>
+                        <option value="active">Active</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Approval Status</label>
+                    <select id="editCreatorApprovalStatus" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="needs-approval">Needs Approval</option>
+                        <option value="approved">Approved by Client</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Total Revenue</label>
+                    <input type="number" id="editCreatorRevenue" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Payment Status</label>
+                    <select id="editCreatorPaymentStatus" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                </div>
+                <button type="submit" class="add-btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         // User authentication system
         const users = {
@@ -757,6 +829,7 @@
             document.getElementById('addClientForm').addEventListener('submit', handleAddClient);
             document.getElementById('addCampaignForm').addEventListener('submit', handleAddCampaign);
             document.getElementById('addCreatorForm').addEventListener('submit', handleAddCreator);
+            document.getElementById('editCreatorForm').addEventListener('submit', handleEditCreator);
         });
 
         // Authentication functions
@@ -1264,6 +1337,44 @@
             alert(`Creator "${handle}" added successfully!`);
         }
 
+        function handleEditCreator(e) {
+            e.preventDefault();
+            
+            const creatorId = document.getElementById('editCreatorId').value;
+            const creator = appData.creators[creatorId];
+            
+            if (!creator) {
+                alert('Creator not found');
+                return;
+            }
+
+            const originalHandle = creator.handle;
+
+            // Update creator data
+            creator.handle = document.getElementById('editCreatorHandle').value;
+            creator.platform = document.getElementById('editCreatorPlatform').value;
+            creator.email = document.getElementById('editCreatorEmail').value;
+            creator.phone = document.getElementById('editCreatorPhone').value;
+            creator.address = document.getElementById('editCreatorAddress').value;
+            creator.paymentMethod = document.getElementById('editCreatorPaymentMethod').value;
+            creator.contactStatus = document.getElementById('editCreatorContactStatus').value;
+            creator.approvalStatus = document.getElementById('editCreatorApprovalStatus').value;
+            creator.totalRevenue = parseFloat(document.getElementById('editCreatorRevenue').value) || 0;
+            creator.paymentStatus = document.getElementById('editCreatorPaymentStatus').value;
+
+            saveData();
+            loadClientData();
+            closeModal('editCreatorModal');
+            
+            // Show success message
+            alert(`✅ Creator "${creator.handle}" updated successfully!\n\nChanges saved:\n• Contact info updated\n• Status updated\n• Revenue: ${creator.totalRevenue}`);
+            
+            // If the detail modal is still open, refresh it with updated data
+            if (document.getElementById('creatorDetailModal').style.display === 'block') {
+                viewCreator(creatorId);
+            }
+        }
+
         // Action functions
         function addCampaign() {
             if (!selectedClient) {
@@ -1440,7 +1551,26 @@
 
         function editCreator(creatorId) {
             const creator = appData.creators[creatorId];
-            alert(`Edit Creator: ${creator.handle}\n\nThis will open an edit form in the next update.\n\nCurrent Status:\n• Contact: ${creator.contactStatus}\n• Approval: ${creator.approvalStatus}\n• Payment: ${creator.paymentStatus}`);
+            if (!creator) {
+                alert('Creator not found');
+                return;
+            }
+            
+            // Pre-populate the edit form with current data
+            document.getElementById('editCreatorId').value = creator.id;
+            document.getElementById('editCreatorHandle').value = creator.handle;
+            document.getElementById('editCreatorPlatform').value = creator.platform;
+            document.getElementById('editCreatorEmail').value = creator.email || '';
+            document.getElementById('editCreatorPhone').value = creator.phone || '';
+            document.getElementById('editCreatorAddress').value = creator.address || '';
+            document.getElementById('editCreatorPaymentMethod').value = creator.paymentMethod;
+            document.getElementById('editCreatorContactStatus').value = creator.contactStatus;
+            document.getElementById('editCreatorApprovalStatus').value = creator.approvalStatus;
+            document.getElementById('editCreatorRevenue').value = creator.totalRevenue;
+            document.getElementById('editCreatorPaymentStatus').value = creator.paymentStatus;
+            
+            // Open the edit modal
+            openModal('editCreatorModal');
         }
 
         function updateCreatorStatus(creatorId) {
