@@ -353,6 +353,8 @@
             width: 90%;
             max-width: 500px;
             position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .close {
@@ -409,6 +411,20 @@
                 flex-direction: column;
                 gap: 15px;
                 text-align: center;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 2% auto;
+                padding: 20px;
+            }
+
+            .modal-content div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            .modal-content div[style*="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))"] {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
             }
         }
     </style>
@@ -502,8 +518,8 @@
                         <thead>
                             <tr>
                                 <th>Creator</th>
-                                <th>Contact</th>
-                                <th>Status</th>
+                                <th>Contact Status</th>
+                                <th>Approval Status</th>
                                 <th>Campaigns</th>
                                 <th>Total Revenue</th>
                                 <th>Payment Status</th>
@@ -668,6 +684,10 @@
                     <input type="tel" id="creatorPhone">
                 </div>
                 <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="creatorAddress" placeholder="Full address">
+                </div>
+                <div class="form-group">
                     <label>Payment Method</label>
                     <select id="creatorPaymentMethod" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
                         <option value="PayPal">PayPal</option>
@@ -676,8 +696,33 @@
                         <option value="Bank Transfer">Bank Transfer</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Contact Status</label>
+                    <select id="creatorContactStatus" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="contacted">Contacted</option>
+                        <option value="contract-signed">Contract Signed</option>
+                        <option value="active">Active</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Approval Status</label>
+                    <select id="creatorApprovalStatus" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="needs-approval">Needs Approval</option>
+                        <option value="approved">Approved by Client</option>
+                    </select>
+                </div>
                 <button type="submit" class="add-btn">Add Creator</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Creator Detail Modal -->
+    <div id="creatorDetailModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close" onclick="closeModal('creatorDetailModal')">&times;</span>
+            <div id="creatorDetailContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
         </div>
     </div>
 
@@ -800,10 +845,20 @@
                             platform: 'TikTok',
                             email: 'hope@email.com',
                             phone: '555-0123',
+                            address: '123 Main St, NYC, NY 10001',
                             paymentMethod: 'PayPal',
+                            contactStatus: 'active',
+                            approvalStatus: 'approved',
                             totalRevenue: 278.80,
                             paymentStatus: 'paid',
-                            campaigns: ['march-spring-launch']
+                            campaigns: ['march-spring-launch'],
+                            analytics: {
+                                totalViews: 131788,
+                                totalEngagement: 6850,
+                                avgEngagementRate: 5.2,
+                                topPost: 54200,
+                                contentCount: 12
+                            }
                         },
                         'bymelissxo': {
                             id: 'bymelissxo',
@@ -811,10 +866,20 @@
                             platform: 'TikTok',
                             email: 'melissa@email.com',
                             phone: '555-0124',
+                            address: '456 Oak Ave, LA, CA 90210',
                             paymentMethod: 'Venmo',
+                            contactStatus: 'contract-signed',
+                            approvalStatus: 'approved',
                             totalRevenue: 272.76,
                             paymentStatus: 'pending',
-                            campaigns: ['march-spring-launch']
+                            campaigns: ['march-spring-launch'],
+                            analytics: {
+                                totalViews: 119648,
+                                totalEngagement: 5742,
+                                avgEngagementRate: 4.8,
+                                topPost: 42300,
+                                contentCount: 8
+                            }
                         },
                         'andersonrae': {
                             id: 'andersonrae',
@@ -822,10 +887,20 @@
                             platform: 'TikTok',
                             email: 'anderson@email.com',
                             phone: '555-0125',
+                            address: '789 Pine St, Miami, FL 33101',
                             paymentMethod: 'Zelle',
+                            contactStatus: 'contacted',
+                            approvalStatus: 'needs-approval',
                             totalRevenue: 288.00,
                             paymentStatus: 'pending',
-                            campaigns: ['march-spring-launch']
+                            campaigns: ['march-spring-launch'],
+                            analytics: {
+                                totalViews: 86022,
+                                totalEngagement: 3355,
+                                avgEngagementRate: 3.9,
+                                topPost: 38900,
+                                contentCount: 6
+                            }
                         }
                     }
                 };
@@ -945,19 +1020,35 @@
                 clientCampaigns.some(camp => camp.id === campId)
             ));
 
+            const getContactStatusBadge = (status) => {
+                const statusMap = {
+                    'contacted': { class: 'status-pending', text: '📞 Contacted' },
+                    'contract-signed': { class: 'status-active', text: '📄 Contract Signed' },
+                    'active': { class: 'status-completed', text: '✅ Active' }
+                };
+                const s = statusMap[status] || { class: 'status-pending', text: status };
+                return `<span class="status-badge ${s.class}">${s.text}</span>`;
+            };
+
+            const getApprovalStatusBadge = (status) => {
+                const statusMap = {
+                    'needs-approval': { class: 'status-pending', text: '⏳ Needs Approval' },
+                    'approved': { class: 'status-completed', text: '👍 Approved' }
+                };
+                const s = statusMap[status] || { class: 'status-pending', text: status };
+                return `<span class="status-badge ${s.class}">${s.text}</span>`;
+            };
+
             const creatorsHtml = clientCreators.map(creator => `
                 <tr>
                     <td>
                         <strong>${creator.handle}</strong><br>
                         <small>${creator.platform}</small>
                     </td>
-                    <td>
-                        <div>${creator.email}</div>
-                        <div><small>${creator.phone}</small></div>
-                    </td>
-                    <td><span class="status-badge status-active">Active</span></td>
+                    <td>${getContactStatusBadge(creator.contactStatus)}</td>
+                    <td>${getApprovalStatusBadge(creator.approvalStatus)}</td>
                     <td>${creator.campaigns.length}</td>
-                    <td>$${creator.totalRevenue}</td>
+                    <td>${creator.totalRevenue}</td>
                     <td><span class="status-badge ${creator.paymentStatus === 'paid' ? 'status-completed' : 'status-pending'}">${creator.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}</span></td>
                     <td>
                         <button style="padding: 5px 10px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer; margin-right: 5px;" onclick="viewCreator('${creator.id}')">View</button>
@@ -1138,7 +1229,10 @@
             const platform = document.getElementById('creatorPlatform').value;
             const email = document.getElementById('creatorEmail').value;
             const phone = document.getElementById('creatorPhone').value;
+            const address = document.getElementById('creatorAddress').value;
             const paymentMethod = document.getElementById('creatorPaymentMethod').value;
+            const contactStatus = document.getElementById('creatorContactStatus').value;
+            const approvalStatus = document.getElementById('creatorApprovalStatus').value;
 
             const creatorId = handle.toLowerCase().replace('@', '').replace(/\W/g, '') + '-' + Date.now();
             appData.creators[creatorId] = {
@@ -1147,10 +1241,20 @@
                 platform: platform,
                 email: email,
                 phone: phone,
+                address: address,
                 paymentMethod: paymentMethod,
+                contactStatus: contactStatus,
+                approvalStatus: approvalStatus,
                 totalRevenue: 0,
                 paymentStatus: 'pending',
-                campaigns: []
+                campaigns: [],
+                analytics: {
+                    totalViews: 0,
+                    totalEngagement: 0,
+                    avgEngagementRate: 0,
+                    topPost: 0,
+                    contentCount: 0
+                }
             };
 
             saveData();
@@ -1179,7 +1283,126 @@
 
         function viewCreator(creatorId) {
             const creator = appData.creators[creatorId];
-            alert(`Creator Profile: ${creator.handle}\n\nPlatform: ${creator.platform}\nEmail: ${creator.email}\nPhone: ${creator.phone}\nTotal Revenue: $${creator.totalRevenue}\nPayment Status: ${creator.paymentStatus}`);
+            if (!creator) return;
+
+            const creatorCampaigns = creator.campaigns.map(campId => appData.campaigns[campId]).filter(c => c);
+            const analytics = creator.analytics || {
+                totalViews: 0,
+                totalEngagement: 0,
+                avgEngagementRate: 0,
+                topPost: 0,
+                contentCount: 0
+            };
+
+            const getContactStatusText = (status) => {
+                const statusMap = {
+                    'contacted': '📞 Contacted',
+                    'contract-signed': '📄 Contract Signed',
+                    'active': '✅ Active'
+                };
+                return statusMap[status] || status;
+            };
+
+            const getApprovalStatusText = (status) => {
+                const statusMap = {
+                    'needs-approval': '⏳ Needs Approval',
+                    'approved': '👍 Approved by Client'
+                };
+                return statusMap[status] || status;
+            };
+
+            const content = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #2c3e50; margin-bottom: 10px;">${creator.handle}</h1>
+                    <p style="color: #7f8c8d; font-size: 1.1em;">${creator.platform} Creator</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <!-- Contact Information -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                        <h3 style="color: #2c3e50; margin-bottom: 15px;">📞 Contact Information</h3>
+                        <div style="margin-bottom: 10px;"><strong>Email:</strong> ${creator.email || 'N/A'}</div>
+                        <div style="margin-bottom: 10px;"><strong>Phone:</strong> ${creator.phone || 'N/A'}</div>
+                        <div style="margin-bottom: 10px;"><strong>Address:</strong> ${creator.address || 'N/A'}</div>
+                        <div style="margin-bottom: 10px;"><strong>Payment Method:</strong> ${creator.paymentMethod}</div>
+                    </div>
+
+                    <!-- Status Information -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                        <h3 style="color: #2c3e50; margin-bottom: 15px;">📋 Status</h3>
+                        <div style="margin-bottom: 10px;"><strong>Contact Status:</strong> ${getContactStatusText(creator.contactStatus)}</div>
+                        <div style="margin-bottom: 10px;"><strong>Approval Status:</strong> ${getApprovalStatusText(creator.approvalStatus)}</div>
+                        <div style="margin-bottom: 10px;"><strong>Payment Status:</strong> ${creator.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}</div>
+                        <div style="margin-bottom: 10px;"><strong>Total Revenue:</strong> ${creator.totalRevenue}</div>
+                    </div>
+                </div>
+
+                <!-- Analytics -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 20px;">📊 Performance Analytics</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+                        <div style="text-align: center; padding: 15px; background: white; border-radius: 8px;">
+                            <div style="font-size: 2em; font-weight: bold; color: #3498db;">${analytics.totalViews.toLocaleString()}</div>
+                            <div style="color: #7f8c8d;">Total Views</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: white; border-radius: 8px;">
+                            <div style="font-size: 2em; font-weight: bold; color: #27ae60;">${analytics.totalEngagement.toLocaleString()}</div>
+                            <div style="color: #7f8c8d;">Total Engagement</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: white; border-radius: 8px;">
+                            <div style="font-size: 2em; font-weight: bold; color: #e74c3c;">${analytics.avgEngagementRate}%</div>
+                            <div style="color: #7f8c8d;">Avg Engagement Rate</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: white; border-radius: 8px;">
+                            <div style="font-size: 2em; font-weight: bold; color: #f39c12;">${analytics.topPost.toLocaleString()}</div>
+                            <div style="color: #7f8c8d;">Best Post Views</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: white; border-radius: 8px;">
+                            <div style="font-size: 2em; font-weight: bold; color: #9b59b6;">${analytics.contentCount}</div>
+                            <div style="color: #7f8c8d;">Content Pieces</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Campaigns -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 20px;">🎯 Active Campaigns</h3>
+                    ${creatorCampaigns.length > 0 ? `
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #e1e5e9;">
+                                        <th style="text-align: left; padding: 10px; color: #2c3e50;">Campaign</th>
+                                        <th style="text-align: left; padding: 10px; color: #2c3e50;">Status</th>
+                                        <th style="text-align: left; padding: 10px; color: #2c3e50;">Budget</th>
+                                        <th style="text-align: left; padding: 10px; color: #2c3e50;">End Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${creatorCampaigns.map(campaign => `
+                                        <tr style="border-bottom: 1px solid #e1e5e9;">
+                                            <td style="padding: 10px;"><strong>${campaign.name}</strong></td>
+                                            <td style="padding: 10px;"><span style="padding: 4px 8px; background: ${campaign.status === 'active' ? '#d4edda' : '#fff3cd'}; color: ${campaign.status === 'active' ? '#155724' : '#856404'}; border-radius: 12px; font-size: 0.8em; text-transform: uppercase;">${campaign.status}</span></td>
+                                            <td style="padding: 10px;">${campaign.budget.toLocaleString()}</td>
+                                            <td style="padding: 10px;">${new Date(campaign.endDate).toLocaleDateString()}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : '<p style="color: #7f8c8d; text-align: center; padding: 20px;">No active campaigns</p>'}
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e1e5e9;">
+                    <button onclick="editCreator('${creator.id}')" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; font-weight: 600;">✏️ Edit Creator</button>
+                    ${creator.paymentStatus !== 'paid' ? `<button onclick="processPayment('${creator.id}')" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; font-weight: 600;">💰 Process Payment</button>` : ''}
+                    <button onclick="updateCreatorStatus('${creator.id}')" style="padding: 10px 20px; background: #f39c12; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🔄 Update Status</button>
+                </div>
+            `;
+
+            document.getElementById('creatorDetailContent').innerHTML = content;
+            openModal('creatorDetailModal');
         }
 
         function processPayment(creatorId) {
@@ -1212,7 +1435,31 @@
             const totalRevenue = clientCreators.reduce((sum, creator) => sum + creator.totalRevenue, 0);
             const totalBudget = clientCampaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
 
-            alert(`📊 Basic Report for ${client.name}\n\n• Total Campaigns: ${clientCampaigns.length}\n• Active Creators: ${clientCreators.length}\n• Total Budget: $${totalBudget.toLocaleString()}\n• Total Revenue: $${totalRevenue.toLocaleString()}\n• Pending Payments: ${clientCreators.filter(c => c.paymentStatus === 'pending').length}\n\nDetailed reports coming soon!`);
+            alert(`📊 Basic Report for ${client.name}\n\n• Total Campaigns: ${clientCampaigns.length}\n• Active Creators: ${clientCreators.length}\n• Total Budget: ${totalBudget.toLocaleString()}\n• Total Revenue: ${totalRevenue.toLocaleString()}\n• Pending Payments: ${clientCreators.filter(c => c.paymentStatus === 'pending').length}\n\nDetailed reports coming soon!`);
+        }
+
+        function editCreator(creatorId) {
+            const creator = appData.creators[creatorId];
+            alert(`Edit Creator: ${creator.handle}\n\nThis will open an edit form in the next update.\n\nCurrent Status:\n• Contact: ${creator.contactStatus}\n• Approval: ${creator.approvalStatus}\n• Payment: ${creator.paymentStatus}`);
+        }
+
+        function updateCreatorStatus(creatorId) {
+            const creator = appData.creators[creatorId];
+            
+            const newContactStatus = prompt(`Update Contact Status for ${creator.handle}:\n\n1. contacted\n2. contract-signed\n3. active\n\nEnter new status:`, creator.contactStatus);
+            if (newContactStatus && ['contacted', 'contract-signed', 'active'].includes(newContactStatus)) {
+                creator.contactStatus = newContactStatus;
+            }
+            
+            const newApprovalStatus = prompt(`Update Approval Status for ${creator.handle}:\n\n1. needs-approval\n2. approved\n\nEnter new status:`, creator.approvalStatus);
+            if (newApprovalStatus && ['needs-approval', 'approved'].includes(newApprovalStatus)) {
+                creator.approvalStatus = newApprovalStatus;
+            }
+            
+            saveData();
+            loadClientData();
+            closeModal('creatorDetailModal');
+            alert(`✅ Creator status updated successfully!`);
         }
 
         // Close modal when clicking outside
