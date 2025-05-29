@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Influencer Tracking System</title>
+    <title>Influencer Management Platform</title>
     <style>
         * {
             margin: 0;
@@ -12,38 +12,184 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
 
-        .container {
+        /* Login Screen Styles */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-card h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .login-btn:hover {
+            background: #2980b9;
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        /* Main App Styles */
+        .app-container {
+            display: none;
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             background: white;
-            padding: 25px;
+            padding: 20px 30px;
             border-radius: 15px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
 
-        .header h1 {
+        .app-header h1 {
             color: #2c3e50;
-            font-size: 2.5em;
-            font-weight: 700;
-            margin-bottom: 10px;
+            font-size: 2em;
         }
 
-        .header p {
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            padding: 8px 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Client Selector */
+        .client-selector {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .client-selector h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .client-card {
+            padding: 20px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .client-card:hover {
+            border-color: #3498db;
+            background: #f8f9ff;
+        }
+
+        .client-card.active {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .client-card h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .client-card p {
             color: #7f8c8d;
-            font-size: 1.1em;
+            font-size: 0.9em;
         }
 
+        .add-client-btn {
+            padding: 20px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            color: #7f8c8d;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .add-client-btn:hover {
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        /* Rest of the existing styles */
         .tabs {
             display: flex;
             background: white;
@@ -126,6 +272,7 @@
             overflow-x: auto;
             border-radius: 10px;
             border: 1px solid #e1e5e9;
+            margin-bottom: 20px;
         }
 
         table {
@@ -187,12 +334,37 @@
             background: #2980b9;
         }
 
-        .chart-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #e1e5e9;
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
         }
 
         .progress-bar {
@@ -210,29 +382,10 @@
             transition: width 0.3s ease;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .form-group input, .form-group select {
-            padding: 10px;
-            border: 1px solid #bdc3c7;
-            border-radius: 6px;
-            font-size: 1em;
+        .no-client-message {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
         }
 
         @media (max-width: 768px) {
@@ -248,570 +401,833 @@
                 grid-template-columns: 1fr;
             }
             
-            .container {
+            .app-container {
                 padding: 10px;
+            }
+
+            .app-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Influencer Management Hub</h1>
-            <p>Professional dashboard for managing campaigns, creators, and performance analytics</p>
-        </div>
-
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
-            <button class="tab" onclick="showTab('creators')">👥 Creators</button>
-            <button class="tab" onclick="showTab('campaigns')">🎯 Campaigns</button>
-            <button class="tab" onclick="showTab('finance')">💰 Finance</button>
-            <button class="tab" onclick="showTab('reports')">📋 Reports</button>
-            <button class="tab" onclick="showTab('client')">🏢 Client View</button>
-        </div>
-
-        <!-- Dashboard Tab -->
-        <div id="dashboard" class="tab-content active">
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <h3>Total Revenue</h3>
-                    <div class="value" id="totalRevenue">$12,847</div>
-                    <div>+18% from last month</div>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <h1>🚀 Login</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required>
                 </div>
-                <div class="metric-card">
-                    <h3>Active Creators</h3>
-                    <div class="value" id="activeCreators">11</div>
-                    <div>Across 3 campaigns</div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
                 </div>
-                <div class="metric-card">
-                    <h3>Avg ROI</h3>
-                    <div class="value" id="avgROI">340%</div>
-                    <div>Campaign performance</div>
-                </div>
-                <div class="metric-card">
-                    <h3>Total Reach</h3>
-                    <div class="value" id="totalReach">2.1M</div>
-                    <div>Views this month</div>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3 style="margin-bottom: 20px; color: #2c3e50;">🏆 Top Performers This Month</h3>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Creator</th>
-                                <th>Views</th>
-                                <th>Engagement Rate</th>
-                                <th>Revenue</th>
-                                <th>ROI</th>
-                                <th>Performance</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>@hopebaxter_</strong></td>
-                                <td>131,788</td>
-                                <td>5.2%</td>
-                                <td>$278.80</td>
-                                <td>425%</td>
-                                <td><span class="performance-high">Excellent</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>@Bymelissxo</strong></td>
-                                <td>119,648</td>
-                                <td>4.8%</td>
-                                <td>$272.76</td>
-                                <td>398%</td>
-                                <td><span class="performance-high">Excellent</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>@xo.andersonrae</strong></td>
-                                <td>86,022</td>
-                                <td>3.9%</td>
-                                <td>$288.00</td>
-                                <td>312%</td>
-                                <td><span class="performance-medium">Good</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Creators Tab -->
-        <div id="creators" class="tab-content">
-            <button class="add-btn" onclick="addCreator()">+ Add New Creator</button>
+                <button type="submit" class="login-btn">Login</button>
+                <div id="loginError" class="error-msg"></div>
+            </form>
             
-            <div class="table-container">
-                <table id="creatorsTable">
-                    <thead>
-                        <tr>
-                            <th>Creator</th>
-                            <th>Contact Info</th>
-                            <th>Status</th>
-                            <th>Total Views</th>
-                            <th>Total Revenue</th>
-                            <th>Payment Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <strong>@hopebaxter_</strong><br>
-                                <small>TikTok • 45K followers</small>
-                            </td>
-                            <td>
-                                <div>hope@email.com</div>
-                                <div><small>555-0123</small></div>
-                                <div><small>123 Main St, NYC</small></div>
-                            </td>
-                            <td><span class="status-badge status-active">Active</span></td>
-                            <td>131,788</td>
-                            <td>$278.80</td>
-                            <td><span class="status-badge status-completed">✅ Paid</span></td>
-                            <td>
-                                <button style="padding: 5px 10px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer; margin-right: 5px;" onclick="viewCreator('@hopebaxter_')">View</button>
-                                <button style="padding: 5px 10px; border: none; background: #27ae60; color: white; border-radius: 4px; cursor: pointer;" onclick="processPayment('@hopebaxter_', 0)">💰 Paid</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <strong>@Bymelissxo</strong><br>
-                                <small>TikTok • 32K followers</small>
-                            </td>
-                            <td>
-                                <div>melissa@email.com</div>
-                                <div><small>555-0124</small></div>
-                                <div><small>456 Oak Ave, LA</small></div>
-                            </td>
-                            <td><span class="status-badge status-active">Active</span></td>
-                            <td>119,648</td>
-                            <td>$272.76</td>
-                            <td><span class="status-badge status-pending">⏳ Pending</span></td>
-                            <td>
-                                <button style="padding: 5px 10px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer; margin-right: 5px;" onclick="viewCreator('@Bymelissxo')">View</button>
-                                <button style="padding: 5px 10px; border: none; background: #e74c3c; color: white; border-radius: 4px; cursor: pointer;" onclick="processPayment('@Bymelissxo', 272.76)">💰 Pay</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <strong>@xo.andersonrae</strong><br>
-                                <small>TikTok • 28K followers</small>
-                            </td>
-                            <td>
-                                <div>anderson@email.com</div>
-                                <div><small>555-0125</small></div>
-                                <div><small>789 Pine St, Miami</small></div>
-                            </td>
-                            <td><span class="status-badge status-pending">Pending</span></td>
-                            <td>86,022</td>
-                            <td>$288.00</td>
-                            <td><span class="status-badge status-pending">⏳ Pending</span></td>
-                            <td>
-                                <button style="padding: 5px 10px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer; margin-right: 5px;" onclick="viewCreator('@xo.andersonrae')">View</button>
-                                <button style="padding: 5px 10px; border: none; background: #e74c3c; color: white; border-radius: 4px; cursor: pointer;" onclick="processPayment('@xo.andersonrae', 288.00)">💰 Pay</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Campaigns Tab -->
-        <div id="campaigns" class="tab-content">
-            <button class="add-btn" onclick="addCampaign()">+ Create New Campaign</button>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Campaign</th>
-                            <th>Client</th>
-                            <th>Status</th>
-                            <th>Budget</th>
-                            <th>Spent</th>
-                            <th>Progress</th>
-                            <th>Creators</th>
-                            <th>ROI</th>
-                            <th>End Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>March Spring Launch</strong></td>
-                            <td>Velvet Caviar</td>
-                            <td><span class="status-badge status-active">Active</span></td>
-                            <td>$5,000</td>
-                            <td>$3,247</td>
-                            <td>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 65%"></div>
-                                </div>
-                                65%
-                            </td>
-                            <td>11</td>
-                            <td class="performance-high">395%</td>
-                            <td>Mar 31, 2025</td>
-                        </tr>
-                        <tr>
-                            <td><strong>TikTok Shop Push</strong></td>
-                            <td>Velvet Caviar</td>
-                            <td><span class="status-badge status-completed">Completed</span></td>
-                            <td>$3,500</td>
-                            <td>$3,500</td>
-                            <td>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 100%"></div>
-                                </div>
-                                100%
-                            </td>
-                            <td>8</td>
-                            <td class="performance-high">255%</td>
-                            <td>Feb 28, 2025</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Finance Tab -->
-        <div id="finance" class="tab-content">
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <h3>Total Owed</h3>
-                    <div class="value" style="color: #e74c3c;">$560.76</div>
-                    <div>Across 2 creators</div>
-                </div>
-                <div class="metric-card">
-                    <h3>Total Paid</h3>
-                    <div class="value" style="color: #27ae60;">$278.80</div>
-                    <div>This month</div>
-                </div>
-                <div class="metric-card">
-                    <h3>Payment Methods</h3>
-                    <div class="value">3</div>
-                    <div>PayPal, Venmo, Zelle</div>
-                </div>
-                <div class="metric-card">
-                    <h3>Avg Payment Time</h3>
-                    <div class="value">7</div>
-                    <div>Days to process</div>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3 style="margin-bottom: 20px; color: #2c3e50;">💰 Outstanding Payments</h3>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Creator</th>
-                                <th>Amount Due</th>
-                                <th>Due Date</th>
-                                <th>Payment Method</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>@Bymelissxo</strong></td>
-                                <td>$272.76</td>
-                                <td>Mar 25, 2025</td>
-                                <td>Venmo</td>
-                                <td><span class="status-badge status-pending">⏳ Pending</span></td>
-                                <td><button style="padding: 5px 10px; border: none; background: #e74c3c; color: white; border-radius: 4px; cursor: pointer;" onclick="processPayment('@Bymelissxo', 272.76)">Pay Now</button></td>
-                            </tr>
-                            <tr>
-                                <td><strong>@xo.andersonrae</strong></td>
-                                <td>$288.00</td>
-                                <td>Mar 26, 2025</td>
-                                <td>Zelle</td>
-                                <td><span class="status-badge status-pending">⏳ Pending</span></td>
-                                <td><button style="padding: 5px 10px; border: none; background: #e74c3c; color: white; border-radius: 4px; cursor: pointer;" onclick="processPayment('@xo.andersonrae', 288.00)">Pay Now</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Reports Tab -->
-        <div id="reports" class="tab-content">
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <h3>Active Reports</h3>
-                    <div class="value">4</div>
-                    <div>Automated schedules</div>
-                </div>
-                <div class="metric-card">
-                    <h3>Last Generated</h3>
-                    <div class="value">Today</div>
-                    <div>5:00 AM EST</div>
-                </div>
-                <div class="metric-card">
-                    <h3>Recipients</h3>
-                    <div class="value">8</div>
-                    <div>Team members</div>
-                </div>
-                <div class="metric-card">
-                    <h3>Report Types</h3>
-                    <div class="value">3</div>
-                    <div>Daily, Weekly, Monthly</div>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3 style="margin-bottom: 20px; color: #2c3e50;">📊 Available Reports</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                    <div style="padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3498db;">
-                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Daily Performance Summary</h4>
-                        <p style="color: #7f8c8d; margin-bottom: 15px;">Creator metrics, campaign updates, and key KPIs</p>
-                        <button class="add-btn" onclick="generateReport('daily')" style="margin: 0;">Generate Report</button>
-                    </div>
-                    <div style="padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #27ae60;">
-                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Weekly Campaign Review</h4>
-                        <p style="color: #7f8c8d; margin-bottom: 15px;">ROI analysis and top performer insights</p>
-                        <button class="add-btn" onclick="generateReport('weekly')" style="margin: 0;">Generate Report</button>
-                    </div>
-                    <div style="padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #e74c3c;">
-                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Payment Status Report</h4>
-                        <p style="color: #7f8c8d; margin-bottom: 15px;">Outstanding payments and financial overview</p>
-                        <button class="add-btn" onclick="generateReport('payments')" style="margin: 0;">Generate Report</button>
-                    </div>
-                    <div style="padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #9b59b6;">
-                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Client Executive Summary</h4>
-                        <p style="color: #7f8c8d; margin-bottom: 15px;">High-level campaign performance for clients</p>
-                        <button class="add-btn" onclick="generateReport('executive')" style="margin: 0;">Generate Report</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Client Dashboard Tab -->
-        <div id="client" class="tab-content">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #2c3e50; margin-bottom: 10px;">Velvet Caviar - Campaign Performance</h2>
-                <p style="color: #7f8c8d; font-size: 1.1em;">Real-time insights into your influencer marketing campaigns</p>
-            </div>
-
-            <div class="metrics-grid">
-                <div class="metric-card" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">
-                    <h3>Campaign ROI</h3>
-                    <div class="value">395%</div>
-                    <div>↑ 23% from last month</div>
-                </div>
-                <div class="metric-card" style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%);">
-                    <h3>Total Reach</h3>
-                    <div class="value">2.1M</div>
-                    <div>Views across all content</div>
-                </div>
-                <div class="metric-card" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
-                    <h3>Revenue Generated</h3>
-                    <div class="value">$12,847</div>
-                    <div>From March campaign</div>
-                </div>
-                <div class="metric-card" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
-                    <h3>Active Creators</h3>
-                    <div class="value">11</div>
-                    <div>Content creators working</div>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3 style="margin-bottom: 20px; color: #2c3e50;">🏆 Top Performing Content</h3>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Creator</th>
-                                <th>Content Type</th>
-                                <th>Views</th>
-                                <th>Engagement</th>
-                                <th>Revenue</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>@hopebaxter_</strong></td>
-                                <td>UGC Video</td>
-                                <td>54,200</td>
-                                <td>1.4%</td>
-                                <td class="performance-high">$166</td>
-                            </tr>
-                            <tr>
-                                <td><strong>@Bymelissxo</strong></td>
-                                <td>Product Review</td>
-                                <td>42,300</td>
-                                <td>2.1%</td>
-                                <td class="performance-high">$142</td>
-                            </tr>
-                            <tr>
-                                <td><strong>@xo.andersonrae</strong></td>
-                                <td>Lifestyle Post</td>
-                                <td>38,900</td>
-                                <td>1.8%</td>
-                                <td class="performance-medium">$98</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div style="text-align: center; margin-top: 30px;">
-                    <button style="padding: 12px 30px; border: none; background: #3498db; color: white; border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: 600;" onclick="exportClientReport()">📊 Export Full Report</button>
-                </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1; font-size: 0.9em; color: #7f8c8d;">
+                <strong>Demo Accounts:</strong><br>
+                admin / admin123<br>
+                manager / manager123<br>
+                user / user123
             </div>
         </div>
     </div>
 
+    <!-- Main App -->
+    <div id="mainApp" class="app-container">
+        <div class="app-header">
+            <h1>Influencer Management Platform</h1>
+            <div class="user-info">
+                <span>Welcome, <strong id="currentUser"></strong></span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Client Selector -->
+        <div class="client-selector">
+            <h3>Select Client:</h3>
+            <div class="client-grid" id="clientGrid">
+                <!-- Clients will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Client Dashboard (shown when client is selected) -->
+        <div id="clientDashboard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="selectedClientName"></h2>
+                <div>
+                    <button class="add-btn" onclick="addCampaign()">+ New Campaign</button>
+                    <button class="add-btn" onclick="addCreator()">+ New Creator</button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+                <button class="tab" onclick="showTab('creators')">👥 Creators</button>
+                <button class="tab" onclick="showTab('campaigns')">🎯 Campaigns</button>
+                <button class="tab" onclick="showTab('finance')">💰 Finance</button>
+                <button class="tab" onclick="showTab('reports')">📋 Reports</button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="metrics-grid" id="dashboardMetrics">
+                    <!-- Metrics will be loaded here -->
+                </div>
+
+                <div class="table-container">
+                    <h3 style="margin-bottom: 20px; color: #2c3e50;">🏆 Top Performers</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Creator</th>
+                                <th>Campaign</th>
+                                <th>Views</th>
+                                <th>Engagement</th>
+                                <th>Revenue</th>
+                                <th>ROI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topPerformersTable">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Creators Tab -->
+            <div id="creators" class="tab-content">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Creator</th>
+                                <th>Contact</th>
+                                <th>Status</th>
+                                <th>Campaigns</th>
+                                <th>Total Revenue</th>
+                                <th>Payment Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="creatorsTable">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Campaigns Tab -->
+            <div id="campaigns" class="tab-content">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Campaign</th>
+                                <th>Status</th>
+                                <th>Budget</th>
+                                <th>Spent</th>
+                                <th>Progress</th>
+                                <th>Creators</th>
+                                <th>ROI</th>
+                                <th>End Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="campaignsTable">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Finance Tab -->
+            <div id="finance" class="tab-content">
+                <div class="metrics-grid" id="financeMetrics">
+                    <!-- Finance metrics will be loaded here -->
+                </div>
+
+                <div class="table-container">
+                    <h3 style="margin-bottom: 20px; color: #2c3e50;">💰 Outstanding Payments</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Creator</th>
+                                <th>Campaign</th>
+                                <th>Amount Due</th>
+                                <th>Due Date</th>
+                                <th>Payment Method</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTable">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-content">
+                <div style="text-align: center; padding: 50px;">
+                    <h2 style="color: #7f8c8d;">Reports Coming Soon</h2>
+                    <p style="color: #95a5a6; margin-top: 10px;">Advanced reporting and analytics features</p>
+                    <button class="add-btn" onclick="generateBasicReport()">Generate Basic Report</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Client Selected Message -->
+        <div id="noClientMessage" class="no-client-message">
+            <h2>Select a client to view their dashboard</h2>
+            <p>Choose from the clients above or add a new client to get started</p>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add Client Modal -->
+    <div id="addClientModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addClientModal')">&times;</span>
+            <h2>Add New Client</h2>
+            <form id="addClientForm">
+                <div class="form-group">
+                    <label>Client Name</label>
+                    <input type="text" id="clientName" required>
+                </div>
+                <div class="form-group">
+                    <label>Industry</label>
+                    <input type="text" id="clientIndustry" placeholder="e.g., Fashion, Beauty, Tech">
+                </div>
+                <div class="form-group">
+                    <label>Contact Email</label>
+                    <input type="email" id="clientEmail">
+                </div>
+                <button type="submit" class="add-btn">Add Client</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Campaign Modal -->
+    <div id="addCampaignModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addCampaignModal')">&times;</span>
+            <h2>Create New Campaign</h2>
+            <form id="addCampaignForm">
+                <div class="form-group">
+                    <label>Campaign Name</label>
+                    <input type="text" id="campaignName" required>
+                </div>
+                <div class="form-group">
+                    <label>Budget</label>
+                    <input type="number" id="campaignBudget" required>
+                </div>
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="campaignStartDate" required>
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" id="campaignEndDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="campaignDescription" rows="3" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;"></textarea>
+                </div>
+                <button type="submit" class="add-btn">Create Campaign</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Creator Modal -->
+    <div id="addCreatorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addCreatorModal')">&times;</span>
+            <h2>Add New Creator</h2>
+            <form id="addCreatorForm">
+                <div class="form-group">
+                    <label>Creator Handle</label>
+                    <input type="text" id="creatorHandle" placeholder="@username" required>
+                </div>
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="creatorPlatform" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="TikTok">TikTok</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Twitter">Twitter</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="creatorEmail">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="creatorPhone">
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="creatorPaymentMethod" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="PayPal">PayPal</option>
+                        <option value="Venmo">Venmo</option>
+                        <option value="Zelle">Zelle</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+                <button type="submit" class="add-btn">Add Creator</button>
+            </form>
+        </div>
+    </div>
+
     <script>
+        // User authentication system
+        const users = {
+            'admin': { password: 'admin123', role: 'admin', name: 'Administrator' },
+            'manager': { password: 'manager123', role: 'manager', name: 'Campaign Manager' },
+            'user': { password: 'user123', role: 'user', name: 'Team Member' }
+        };
+
+        let currentUser = null;
+        let selectedClient = null;
+        let appData = {
+            clients: {},
+            campaigns: {},
+            creators: {}
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            checkAuth();
+            
+            // Login form handler
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                login();
+            });
+
+            // Modal form handlers
+            document.getElementById('addClientForm').addEventListener('submit', handleAddClient);
+            document.getElementById('addCampaignForm').addEventListener('submit', handleAddCampaign);
+            document.getElementById('addCreatorForm').addEventListener('submit', handleAddCreator);
+        });
+
+        // Authentication functions
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('loginError');
+
+            if (users[username] && users[username].password === password) {
+                currentUser = {
+                    username: username,
+                    ...users[username]
+                };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                showMainApp();
+                errorMsg.textContent = '';
+            } else {
+                errorMsg.textContent = 'Invalid username or password';
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            selectedClient = null;
+            localStorage.removeItem('currentUser');
+            showLoginScreen();
+        }
+
+        function checkAuth() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainApp();
+            } else {
+                showLoginScreen();
+            }
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('currentUser').textContent = currentUser.name;
+            loadClients();
+        }
+
+        // Data management
+        function loadData() {
+            const savedData = localStorage.getItem('appData');
+            if (savedData) {
+                appData = JSON.parse(savedData);
+            } else {
+                // Initialize with sample data
+                appData = {
+                    clients: {
+                        'velvet-caviar': {
+                            id: 'velvet-caviar',
+                            name: 'Velvet Caviar',
+                            industry: 'Fashion',
+                            email: 'contact@velvetcaviar.com',
+                            campaigns: ['march-spring-launch'],
+                            creators: ['hopebaxter', 'bymelissxo', 'andersonrae']
+                        }
+                    },
+                    campaigns: {
+                        'march-spring-launch': {
+                            id: 'march-spring-launch',
+                            clientId: 'velvet-caviar',
+                            name: 'March Spring Launch',
+                            budget: 5000,
+                            spent: 3247,
+                            startDate: '2025-03-01',
+                            endDate: '2025-03-31',
+                            status: 'active',
+                            creators: ['hopebaxter', 'bymelissxo', 'andersonrae']
+                        }
+                    },
+                    creators: {
+                        'hopebaxter': {
+                            id: 'hopebaxter',
+                            handle: '@hopebaxter_',
+                            platform: 'TikTok',
+                            email: 'hope@email.com',
+                            phone: '555-0123',
+                            paymentMethod: 'PayPal',
+                            totalRevenue: 278.80,
+                            paymentStatus: 'paid',
+                            campaigns: ['march-spring-launch']
+                        },
+                        'bymelissxo': {
+                            id: 'bymelissxo',
+                            handle: '@Bymelissxo',
+                            platform: 'TikTok',
+                            email: 'melissa@email.com',
+                            phone: '555-0124',
+                            paymentMethod: 'Venmo',
+                            totalRevenue: 272.76,
+                            paymentStatus: 'pending',
+                            campaigns: ['march-spring-launch']
+                        },
+                        'andersonrae': {
+                            id: 'andersonrae',
+                            handle: '@xo.andersonrae',
+                            platform: 'TikTok',
+                            email: 'anderson@email.com',
+                            phone: '555-0125',
+                            paymentMethod: 'Zelle',
+                            totalRevenue: 288.00,
+                            paymentStatus: 'pending',
+                            campaigns: ['march-spring-launch']
+                        }
+                    }
+                };
+                saveData();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('appData', JSON.stringify(appData));
+        }
+
+        // Client management
+        function loadClients() {
+            const grid = document.getElementById('clientGrid');
+            grid.innerHTML = '';
+
+            // Add existing clients
+            Object.values(appData.clients).forEach(client => {
+                const clientCard = document.createElement('div');
+                clientCard.className = 'client-card';
+                clientCard.onclick = () => selectClient(client.id);
+                clientCard.innerHTML = `
+                    <h4>${client.name}</h4>
+                    <p>${client.industry}</p>
+                    <small>${Object.keys(appData.campaigns).filter(id => appData.campaigns[id].clientId === client.id).length} campaigns</small>
+                `;
+                grid.appendChild(clientCard);
+            });
+
+            // Add "Add Client" button
+            const addButton = document.createElement('div');
+            addButton.className = 'add-client-btn';
+            addButton.onclick = () => openModal('addClientModal');
+            addButton.innerHTML = '+ Add New Client';
+            grid.appendChild(addButton);
+        }
+
+        function selectClient(clientId) {
+            selectedClient = clientId;
+            
+            // Update UI
+            document.querySelectorAll('.client-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.getElementById('selectedClientName').textContent = appData.clients[clientId].name;
+            document.getElementById('clientDashboard').style.display = 'block';
+            document.getElementById('noClientMessage').style.display = 'none';
+            
+            loadClientData();
+        }
+
+        function loadClientData() {
+            if (!selectedClient) return;
+            
+            loadDashboardMetrics();
+            loadCreatorsTable();
+            loadCampaignsTable();
+            loadFinanceData();
+        }
+
+        function loadDashboardMetrics() {
+            const client = appData.clients[selectedClient];
+            const clientCampaigns = Object.values(appData.campaigns).filter(c => c.clientId === selectedClient);
+            const clientCreators = Object.values(appData.creators).filter(c => c.campaigns.some(campId => 
+                clientCampaigns.some(camp => camp.id === campId)
+            ));
+
+            const totalRevenue = clientCreators.reduce((sum, creator) => sum + creator.totalRevenue, 0);
+            const totalBudget = clientCampaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
+            const totalSpent = clientCampaigns.reduce((sum, campaign) => sum + campaign.spent, 0);
+            const roi = totalSpent > 0 ? ((totalRevenue - totalSpent) / totalSpent * 100).toFixed(0) : 0;
+
+            document.getElementById('dashboardMetrics').innerHTML = `
+                <div class="metric-card">
+                    <h3>Total Revenue</h3>
+                    <div class="value">$${totalRevenue.toLocaleString()}</div>
+                    <div>From ${clientCreators.length} creators</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Active Campaigns</h3>
+                    <div class="value">${clientCampaigns.filter(c => c.status === 'active').length}</div>
+                    <div>Out of ${clientCampaigns.length} total</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Average ROI</h3>
+                    <div class="value">${roi}%</div>
+                    <div>Campaign performance</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Budget Utilization</h3>
+                    <div class="value">${totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(0) : 0}%</div>
+                    <div>$${totalSpent.toLocaleString()} of $${totalBudget.toLocaleString()}</div>
+                </div>
+            `;
+
+            // Load top performers
+            const topPerformers = clientCreators.sort((a, b) => b.totalRevenue - a.totalRevenue).slice(0, 5);
+            const topPerformersHtml = topPerformers.map(creator => `
+                <tr>
+                    <td><strong>${creator.handle}</strong></td>
+                    <td>${creator.campaigns.length > 0 ? appData.campaigns[creator.campaigns[0]]?.name || 'N/A' : 'N/A'}</td>
+                    <td>${(Math.random() * 100000 + 50000).toFixed(0)}</td>
+                    <td>${(Math.random() * 5 + 2).toFixed(1)}%</td>
+                    <td>$${creator.totalRevenue}</td>
+                    <td class="performance-high">${(Math.random() * 200 + 300).toFixed(0)}%</td>
+                </tr>
+            `).join('');
+            document.getElementById('topPerformersTable').innerHTML = topPerformersHtml;
+        }
+
+        function loadCreatorsTable() {
+            const client = appData.clients[selectedClient];
+            const clientCampaigns = Object.values(appData.campaigns).filter(c => c.clientId === selectedClient);
+            const clientCreators = Object.values(appData.creators).filter(c => c.campaigns.some(campId => 
+                clientCampaigns.some(camp => camp.id === campId)
+            ));
+
+            const creatorsHtml = clientCreators.map(creator => `
+                <tr>
+                    <td>
+                        <strong>${creator.handle}</strong><br>
+                        <small>${creator.platform}</small>
+                    </td>
+                    <td>
+                        <div>${creator.email}</div>
+                        <div><small>${creator.phone}</small></div>
+                    </td>
+                    <td><span class="status-badge status-active">Active</span></td>
+                    <td>${creator.campaigns.length}</td>
+                    <td>$${creator.totalRevenue}</td>
+                    <td><span class="status-badge ${creator.paymentStatus === 'paid' ? 'status-completed' : 'status-pending'}">${creator.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}</span></td>
+                    <td>
+                        <button style="padding: 5px 10px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer; margin-right: 5px;" onclick="viewCreator('${creator.id}')">View</button>
+                        ${creator.paymentStatus !== 'paid' ? `<button style="padding: 5px 10px; border: none; background: #e74c3c; color: white; border-radius: 4px; cursor: pointer;" onclick="processPayment('${creator.id}')">💰 Pay</button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('creatorsTable').innerHTML = creatorsHtml;
+        }
+
+        function loadCampaignsTable() {
+            const clientCampaigns = Object.values(appData.campaigns).filter(c => c.clientId === selectedClient);
+            
+            const campaignsHtml = clientCampaigns.map(campaign => {
+                const progress = campaign.budget > 0 ? ((campaign.spent / campaign.budget) * 100).toFixed(0) : 0;
+                const roi = campaign.spent > 0 ? (((campaign.spent * 2) - campaign.spent) / campaign.spent * 100).toFixed(0) : 0;
+                
+                return `
+                    <tr>
+                        <td><strong>${campaign.name}</strong></td>
+                        <td><span class="status-badge ${campaign.status === 'active' ? 'status-active' : 'status-completed'}">${campaign.status}</span></td>
+                        <td>$${campaign.budget.toLocaleString()}</td>
+                        <td>$${campaign.spent.toLocaleString()}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            ${progress}%
+                        </td>
+                        <td>${campaign.creators.length}</td>
+                        <td class="performance-high">${roi}%</td>
+                        <td>${new Date(campaign.endDate).toLocaleDateString()}</td>
+                        <td>
+                            <button style="padding: 5px 10px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer;" onclick="editCampaign('${campaign.id}')">Edit</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            document.getElementById('campaignsTable').innerHTML = campaignsHtml;
+        }
+
+        function loadFinanceData() {
+            const client = appData.clients[selectedClient];
+            const clientCampaigns = Object.values(appData.campaigns).filter(c => c.clientId === selectedClient);
+            const clientCreators = Object.values(appData.creators).filter(c => c.campaigns.some(campId => 
+                clientCampaigns.some(camp => camp.id === campId)
+            ));
+
+            const totalOwed = clientCreators.filter(c => c.paymentStatus === 'pending').reduce((sum, c) => sum + c.totalRevenue, 0);
+            const totalPaid = clientCreators.filter(c => c.paymentStatus === 'paid').reduce((sum, c) => sum + c.totalRevenue, 0);
+
+            document.getElementById('financeMetrics').innerHTML = `
+                <div class="metric-card">
+                    <h3>Total Owed</h3>
+                    <div class="value" style="color: #e74c3c;">$${totalOwed.toFixed(2)}</div>
+                    <div>${clientCreators.filter(c => c.paymentStatus === 'pending').length} creators</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Total Paid</h3>
+                    <div class="value" style="color: #27ae60;">$${totalPaid.toFixed(2)}</div>
+                    <div>This month</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Payment Methods</h3>
+                    <div class="value">${[...new Set(clientCreators.map(c => c.paymentMethod))].length}</div>
+                    <div>Different methods</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Pending Payments</h3>
+                    <div class="value">${clientCreators.filter(c => c.paymentStatus === 'pending').length}</div>
+                    <div>Outstanding</div>
+                </div>
+            `;
+
+            // Load payments table
+            const pendingPayments = clientCreators.filter(c => c.paymentStatus === 'pending');
+            const paymentsHtml = pendingPayments.map(creator => `
+                <tr>
+                    <td><strong>${creator.handle}</strong></td>
+                    <td>${creator.campaigns.length > 0 ? appData.campaigns[creator.campaigns[0]]?.name || 'N/A' : 'N/A'}</td>
+                    <td>$${creator.totalRevenue}</td>
+                    <td>${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</td>
+                    <td>${creator.paymentMethod}</td>
+                    <td><span class="status-badge status-pending">⏳ Pending</span></td>
+                    <td>
+                        <button style="padding: 5px 10px; border: none; background: #e74c3c; color: white; border-radius: 4px; cursor: pointer;" onclick="processPayment('${creator.id}')">Pay Now</button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('paymentsTable').innerHTML = paymentsHtml;
+        }
+
         // Tab functionality
         function showTab(tabName) {
-            const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(content => content.classList.remove('active'));
-            
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
 
-        // Creator management
-        function addCreator() {
-            const name = prompt('Enter creator handle (e.g., @username):');
-            if (name) {
-                const email = prompt('Enter creator email:') || 'N/A';
-                const phone = prompt('Enter creator phone:') || 'N/A';
-                const address = prompt('Enter creator address:') || 'N/A';
-                
-                const table = document.getElementById('creatorsTable');
-                const tbody = table.getElementsByTagName('tbody')[0];
-                const newRow = tbody.insertRow();
-                newRow.innerHTML = `
-                    <td>
-                        <strong>${name}</strong><br>
-                        <small>TikTok • New creator</small>
-                    </td>
-                    <td>
-                        <div>${email}</div>
-                        <div><small>${phone}</small></div>
-                        <div><small>${address}</small></div>
-                    </td>
-                    <td><span class="status-badge status-pending">Pending</span></td>
-                    <td>0</td>
-                    <td>$0.00</td>
-                    <td><span class="status-badge status-pending">⏳ Pending</span></td>
-                    <td>
-                        <button style="padding: 5px 10px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer; margin-right: 5px;" onclick="viewCreator('${name}')">View</button>
-                        <button style="padding: 5px 10px; border: none; background: #e74c3c; color: white; border-radius: 4px; cursor: pointer;" onclick="processPayment('${name}', 0)">💰 Pay</button>
-                    </td>
-                `;
-                alert(`${name} added successfully!`);
-            }
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
         }
 
-        function viewCreator(creatorName) {
-            alert(`Viewing detailed profile for ${creatorName}\n\nThis would show:\n• Complete performance history\n• Contact details\n• Payment history\n• Content library`);
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
         }
 
-        function addCampaign() {
-            const name = prompt('Enter campaign name:');
-            if (name) {
-                const client = prompt('Enter client name:') || 'Unknown Client';
-                const budget = prompt('Enter campaign budget:') || '0';
-                alert(`Campaign "${name}" created successfully!\n\nClient: ${client}\nBudget: $${budget}`);
-            }
+        // Form handlers
+        function handleAddClient(e) {
+            e.preventDefault();
+            const name = document.getElementById('clientName').value;
+            const industry = document.getElementById('clientIndustry').value;
+            const email = document.getElementById('clientEmail').value;
+
+            const clientId = name.toLowerCase().replace(/\s+/g, '-');
+            appData.clients[clientId] = {
+                id: clientId,
+                name: name,
+                industry: industry,
+                email: email,
+                campaigns: [],
+                creators: []
+            };
+
+            saveData();
+            loadClients();
+            closeModal('addClientModal');
+            document.getElementById('addClientForm').reset();
+            alert(`Client "${name}" added successfully!`);
         }
 
-        // Payment processing
-        function processPayment(creator, amount) {
-            if (amount === 0) {
-                alert(`${creator} has already been paid in full.`);
+        function handleAddCampaign(e) {
+            e.preventDefault();
+            if (!selectedClient) {
+                alert('Please select a client first');
                 return;
             }
 
-            const method = prompt(`Process payment of $${amount} to ${creator}\n\nEnter payment method (PayPal, Venmo, Zelle):`) || 'PayPal';
-            
-            if (confirm(`Confirm payment:\n\nCreator: ${creator}\nAmount: $${amount}\nMethod: ${method}\n\nProcess this payment?`)) {
-                // Simulate payment processing
-                const button = event.target;
-                const originalText = button.textContent;
-                button.textContent = 'Processing...';
-                button.disabled = true;
-                
-                setTimeout(() => {
-                    button.textContent = '✓ Paid';
-                    button.style.background = '#27ae60';
-                    button.disabled = true;
-                    
-                    // Update payment status in the row
-                    const row = button.closest('tr');
-                    const statusCell = row.cells[5];
-                    statusCell.innerHTML = '<span class="status-badge status-completed">✅ Paid</span>';
-                    
-                    alert(`✅ Payment processed successfully!\n\nCreator: ${creator}\nAmount: $${amount}\nMethod: ${method}\nTransaction ID: TXN_${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
-                }, 2000);
+            const name = document.getElementById('campaignName').value;
+            const budget = parseFloat(document.getElementById('campaignBudget').value);
+            const startDate = document.getElementById('campaignStartDate').value;
+            const endDate = document.getElementById('campaignEndDate').value;
+            const description = document.getElementById('campaignDescription').value;
+
+            const campaignId = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+            appData.campaigns[campaignId] = {
+                id: campaignId,
+                clientId: selectedClient,
+                name: name,
+                budget: budget,
+                spent: 0,
+                startDate: startDate,
+                endDate: endDate,
+                description: description,
+                status: 'active',
+                creators: []
+            };
+
+            appData.clients[selectedClient].campaigns.push(campaignId);
+            saveData();
+            loadClientData();
+            closeModal('addCampaignModal');
+            document.getElementById('addCampaignForm').reset();
+            alert(`Campaign "${name}" created successfully!`);
+        }
+
+        function handleAddCreator(e) {
+            e.preventDefault();
+            if (!selectedClient) {
+                alert('Please select a client first');
+                return;
+            }
+
+            const handle = document.getElementById('creatorHandle').value;
+            const platform = document.getElementById('creatorPlatform').value;
+            const email = document.getElementById('creatorEmail').value;
+            const phone = document.getElementById('creatorPhone').value;
+            const paymentMethod = document.getElementById('creatorPaymentMethod').value;
+
+            const creatorId = handle.toLowerCase().replace('@', '').replace(/\W/g, '') + '-' + Date.now();
+            appData.creators[creatorId] = {
+                id: creatorId,
+                handle: handle,
+                platform: platform,
+                email: email,
+                phone: phone,
+                paymentMethod: paymentMethod,
+                totalRevenue: 0,
+                paymentStatus: 'pending',
+                campaigns: []
+            };
+
+            saveData();
+            loadClientData();
+            closeModal('addCreatorModal');
+            document.getElementById('addCreatorForm').reset();
+            alert(`Creator "${handle}" added successfully!`);
+        }
+
+        // Action functions
+        function addCampaign() {
+            if (!selectedClient) {
+                alert('Please select a client first');
+                return;
+            }
+            openModal('addCampaignModal');
+        }
+
+        function addCreator() {
+            if (!selectedClient) {
+                alert('Please select a client first');
+                return;
+            }
+            openModal('addCreatorModal');
+        }
+
+        function viewCreator(creatorId) {
+            const creator = appData.creators[creatorId];
+            alert(`Creator Profile: ${creator.handle}\n\nPlatform: ${creator.platform}\nEmail: ${creator.email}\nPhone: ${creator.phone}\nTotal Revenue: $${creator.totalRevenue}\nPayment Status: ${creator.paymentStatus}`);
+        }
+
+        function processPayment(creatorId) {
+            const creator = appData.creators[creatorId];
+            if (confirm(`Process payment of $${creator.totalRevenue} to ${creator.handle} via ${creator.paymentMethod}?`)) {
+                creator.paymentStatus = 'paid';
+                saveData();
+                loadClientData();
+                alert(`✅ Payment processed successfully!\n\nCreator: ${creator.handle}\nAmount: $${creator.totalRevenue}\nMethod: ${creator.paymentMethod}`);
             }
         }
 
-        // Report generation
-        function generateReport(type) {
-            const reportTypes = {
-                'daily': 'Daily Performance Summary',
-                'weekly': 'Weekly Campaign Review',
-                'payments': 'Payment Status Report',
-                'executive': 'Client Executive Summary'
-            };
-            
-            const reportName = reportTypes[type] || 'Report';
-            const button = event.target;
-            const originalText = button.textContent;
-            
-            button.textContent = 'Generating...';
-            button.disabled = true;
-            
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.disabled = false;
-                alert(`✅ ${reportName} generated successfully!\n\nReport includes:\n• Campaign performance metrics\n• Creator analytics\n• Financial summaries\n• Actionable insights\n\nReport has been generated and is ready for download.`);
-            }, 2000);
+        function editCampaign(campaignId) {
+            const campaign = appData.campaigns[campaignId];
+            alert(`Edit Campaign: ${campaign.name}\n\nThis feature will be implemented in the next update.`);
         }
 
-        function exportClientReport() {
-            const button = event.target;
-            const originalText = button.textContent;
-            button.textContent = '📊 Exporting...';
-            button.disabled = true;
-            
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.disabled = false;
-                alert(`✅ Client report exported successfully!\n\nVelvet Caviar Campaign Performance Report:\n• Total ROI: 395%\n• Total Reach: 2.1M views\n• Revenue Generated: $12,847\n• Active Creators: 11\n\nReport is ready for client presentation.`);
-            }, 1500);
+        function generateBasicReport() {
+            if (!selectedClient) {
+                alert('Please select a client first');
+                return;
+            }
+
+            const client = appData.clients[selectedClient];
+            const clientCampaigns = Object.values(appData.campaigns).filter(c => c.clientId === selectedClient);
+            const clientCreators = Object.values(appData.creators).filter(c => c.campaigns.some(campId => 
+                clientCampaigns.some(camp => camp.id === campId)
+            ));
+
+            const totalRevenue = clientCreators.reduce((sum, creator) => sum + creator.totalRevenue, 0);
+            const totalBudget = clientCampaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
+
+            alert(`📊 Basic Report for ${client.name}\n\n• Total Campaigns: ${clientCampaigns.length}\n• Active Creators: ${clientCreators.length}\n• Total Budget: $${totalBudget.toLocaleString()}\n• Total Revenue: $${totalRevenue.toLocaleString()}\n• Pending Payments: ${clientCreators.filter(c => c.paymentStatus === 'pending').length}\n\nDetailed reports coming soon!`);
         }
 
-        // Auto-update demo data
-        function updateMetrics() {
-            const elements = ['totalRevenue', 'totalReach'];
-            elements.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    // Simulate real-time updates
-                    const current = element.textContent;
-                    if (id === 'totalRevenue') {
-                        const num = parseInt(current.replace(/[^0-9]/g, ''));
-                        element.textContent = '$' + (num + Math.floor(Math.random() * 100)).toLocaleString();
-                    }
-                }
-            });
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
         }
-
-        // Update metrics every 30 seconds for demo
-        setInterval(updateMetrics, 30000);
     </script>
 </body>
 </html>
