@@ -426,6 +426,23 @@
             .modal-content div[style*="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))"] {
                 grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
             }
+
+            .client-grid {
+                grid-template-columns: 1fr;
+            }
+
+            div[style*="justify-content: space-between"] > div {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            div[style*="justify-content: space-between"] > div .add-btn {
+                margin-bottom: 0;
+                margin-right: 0;
+                font-size: 0.9em;
+                padding: 10px 15px;
+            }
         }
     </style>
 </head>
@@ -472,8 +489,10 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 id="selectedClientName"></h2>
                 <div>
+                    <button class="add-btn" onclick="importData()">📥 Import Data</button>
                     <button class="add-btn" onclick="addCampaign()">+ New Campaign</button>
                     <button class="add-btn" onclick="addCreator()">+ New Creator</button>
+                    <button class="add-btn" onclick="deleteClient()" style="background: #e74c3c;">🗑️ Delete Client</button>
                 </div>
             </div>
 
@@ -798,6 +817,81 @@
         </div>
     </div>
 
+    <!-- Edit Campaign Modal -->
+    <div id="editCampaignModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editCampaignModal')">&times;</span>
+            <h2>Edit Campaign</h2>
+            <form id="editCampaignForm">
+                <input type="hidden" id="editCampaignId">
+                <div class="form-group">
+                    <label>Campaign Name</label>
+                    <input type="text" id="editCampaignName" required>
+                </div>
+                <div class="form-group">
+                    <label>Budget</label>
+                    <input type="number" id="editCampaignBudget" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Amount Spent</label>
+                    <input type="number" id="editCampaignSpent" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="editCampaignStartDate" required>
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" id="editCampaignEndDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="editCampaignStatus" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;">
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="paused">Paused</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="editCampaignDescription" rows="3" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px;"></textarea>
+                </div>
+                <button type="submit" class="add-btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Import Data Modal -->
+    <div id="importDataModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closeModal('importDataModal')">&times;</span>
+            <h2>📥 Import Data</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #2c3e50; margin-bottom: 10px; display: block;">Import Type</label>
+                <select id="importType" style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px; margin-bottom: 15px;" onchange="updateImportTemplate()">
+                    <option value="creators">Creators</option>
+                    <option value="campaigns">Campaigns</option>
+                </select>
+            </div>
+
+            <div id="importTemplate" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-family: monospace; font-size: 0.9em; border: 1px solid #e1e5e9;">
+                <!-- Template will be populated by JavaScript -->
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #2c3e50; margin-bottom: 10px; display: block;">Paste CSV Data</label>
+                <textarea id="importData" rows="10" placeholder="Paste your CSV data here..." style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px; font-family: monospace; font-size: 0.9em;"></textarea>
+            </div>
+
+            <div style="text-align: center;">
+                <button onclick="processImport()" class="add-btn">Import Data</button>
+                <button onclick="closeModal('importDataModal')" style="padding: 12px 25px; border: 1px solid #bdc3c7; background: white; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 1em; margin-left: 10px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // User authentication system
         const users = {
@@ -830,6 +924,7 @@
             document.getElementById('addCampaignForm').addEventListener('submit', handleAddCampaign);
             document.getElementById('addCreatorForm').addEventListener('submit', handleAddCreator);
             document.getElementById('editCreatorForm').addEventListener('submit', handleEditCreator);
+            document.getElementById('editCampaignForm').addEventListener('submit', handleEditCampaign);
         });
 
         // Authentication functions
@@ -908,6 +1003,7 @@
                             startDate: '2025-03-01',
                             endDate: '2025-03-31',
                             status: 'active',
+                            description: 'Spring product launch campaign featuring phone cases and accessories',
                             creators: ['hopebaxter', 'bymelissxo', 'andersonrae']
                         }
                     },
@@ -1142,9 +1238,9 @@
                 return `
                     <tr>
                         <td><strong>${campaign.name}</strong></td>
-                        <td><span class="status-badge ${campaign.status === 'active' ? 'status-active' : 'status-completed'}">${campaign.status}</span></td>
-                        <td>$${campaign.budget.toLocaleString()}</td>
-                        <td>$${campaign.spent.toLocaleString()}</td>
+                        <td><span class="status-badge ${campaign.status === 'active' ? 'status-active' : campaign.status === 'completed' ? 'status-completed' : 'status-pending'}">${campaign.status}</span></td>
+                        <td>${campaign.budget.toLocaleString()}</td>
+                        <td>${campaign.spent.toLocaleString()}</td>
                         <td>
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: ${progress}%"></div>
@@ -1155,7 +1251,8 @@
                         <td class="performance-high">${roi}%</td>
                         <td>${new Date(campaign.endDate).toLocaleDateString()}</td>
                         <td>
-                            <button style="padding: 5px 10px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer;" onclick="editCampaign('${campaign.id}')">Edit</button>
+                            <button style="padding: 5px 10px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer; margin-right: 5px;" onclick="editCampaign('${campaign.id}')">Edit</button>
+                            <button style="padding: 5px 10px; border: none; background: #e74c3c; color: white; border-radius: 4px; cursor: pointer;" onclick="deleteCampaign('${campaign.id}')">Delete</button>
                         </td>
                     </tr>
                 `;
@@ -1518,17 +1615,260 @@
 
         function processPayment(creatorId) {
             const creator = appData.creators[creatorId];
-            if (confirm(`Process payment of $${creator.totalRevenue} to ${creator.handle} via ${creator.paymentMethod}?`)) {
+            if (confirm(`Mark payment as PAID for ${creator.handle}?\n\nAmount: ${creator.totalRevenue}`)) {
                 creator.paymentStatus = 'paid';
                 saveData();
                 loadClientData();
-                alert(`✅ Payment processed successfully!\n\nCreator: ${creator.handle}\nAmount: $${creator.totalRevenue}\nMethod: ${creator.paymentMethod}`);
+                alert(`✅ Payment marked as PAID!\n\nCreator: ${creator.handle}\nAmount: ${creator.totalRevenue}`);
             }
         }
 
         function editCampaign(campaignId) {
             const campaign = appData.campaigns[campaignId];
-            alert(`Edit Campaign: ${campaign.name}\n\nThis feature will be implemented in the next update.`);
+            if (!campaign) {
+                alert('Campaign not found');
+                return;
+            }
+            
+            // Pre-populate the edit form with current data
+            document.getElementById('editCampaignId').value = campaign.id;
+            document.getElementById('editCampaignName').value = campaign.name;
+            document.getElementById('editCampaignBudget').value = campaign.budget;
+            document.getElementById('editCampaignSpent').value = campaign.spent || 0;
+            document.getElementById('editCampaignStartDate').value = campaign.startDate;
+            document.getElementById('editCampaignEndDate').value = campaign.endDate;
+            document.getElementById('editCampaignStatus').value = campaign.status;
+            document.getElementById('editCampaignDescription').value = campaign.description || '';
+            
+            // Open the edit modal
+            openModal('editCampaignModal');
+        }
+
+        function handleEditCampaign(e) {
+            e.preventDefault();
+            
+            const campaignId = document.getElementById('editCampaignId').value;
+            const campaign = appData.campaigns[campaignId];
+            
+            if (!campaign) {
+                alert('Campaign not found');
+                return;
+            }
+
+            // Validation
+            const newBudget = parseFloat(document.getElementById('editCampaignBudget').value);
+            const newSpent = parseFloat(document.getElementById('editCampaignSpent').value) || 0;
+            
+            if (isNaN(newBudget) || newBudget < 0) {
+                alert('Please enter a valid budget amount (0 or greater)');
+                return;
+            }
+            
+            if (newSpent < 0) {
+                alert('Spent amount cannot be negative');
+                return;
+            }
+
+            // Update campaign data
+            campaign.name = document.getElementById('editCampaignName').value.trim();
+            campaign.budget = newBudget;
+            campaign.spent = newSpent;
+            campaign.startDate = document.getElementById('editCampaignStartDate').value;
+            campaign.endDate = document.getElementById('editCampaignEndDate').value;
+            campaign.status = document.getElementById('editCampaignStatus').value;
+            campaign.description = document.getElementById('editCampaignDescription').value.trim();
+
+            saveData();
+            loadClientData();
+            closeModal('editCampaignModal');
+            
+            alert(`✅ Campaign "${campaign.name}" updated successfully!`);
+        }
+
+        function deleteCampaign(campaignId) {
+            const campaign = appData.campaigns[campaignId];
+            if (!campaign) return;
+            
+            if (confirm(`⚠️ Delete Campaign: "${campaign.name}"?\n\nThis action cannot be undone.\n\n• Campaign data will be permanently deleted\n• Creator associations will be removed\n\nProceed?`)) {
+                // Remove campaign from client
+                const client = appData.clients[selectedClient];
+                client.campaigns = client.campaigns.filter(id => id !== campaignId);
+                
+                // Remove campaign from all creators
+                Object.values(appData.creators).forEach(creator => {
+                    creator.campaigns = creator.campaigns.filter(id => id !== campaignId);
+                });
+                
+                // Delete campaign
+                delete appData.campaigns[campaignId];
+                
+                saveData();
+                loadClientData();
+                alert(`✅ Campaign "${campaign.name}" deleted successfully!`);
+            }
+        }
+
+        function deleteClient() {
+            if (!selectedClient) return;
+            
+            const client = appData.clients[selectedClient];
+            const clientCampaigns = Object.values(appData.campaigns).filter(c => c.clientId === selectedClient);
+            const clientCreators = Object.values(appData.creators).filter(c => c.campaigns.some(campId => 
+                clientCampaigns.some(camp => camp.id === campId)
+            ));
+            
+            if (confirm(`⚠️ DELETE CLIENT: "${client.name}"?\n\nThis will permanently delete:\n• ${clientCampaigns.length} campaigns\n• ${clientCreators.length} creators\n• All associated data\n\nThis action CANNOT be undone!\n\nType "DELETE" to confirm:`)) {
+                const confirmation = prompt('Type "DELETE" to confirm deletion:');
+                if (confirmation === 'DELETE') {
+                    // Delete all client campaigns
+                    clientCampaigns.forEach(campaign => {
+                        delete appData.campaigns[campaign.id];
+                    });
+                    
+                    // Delete all client creators
+                    clientCreators.forEach(creator => {
+                        delete appData.creators[creator.id];
+                    });
+                    
+                    // Delete client
+                    delete appData.clients[selectedClient];
+                    
+                    selectedClient = null;
+                    saveData();
+                    loadClients();
+                    
+                    document.getElementById('clientDashboard').style.display = 'none';
+                    document.getElementById('noClientMessage').style.display = 'block';
+                    
+                    alert(`✅ Client "${client.name}" and all associated data deleted successfully!`);
+                } else {
+                    alert('Deletion cancelled - confirmation text did not match');
+                }
+            }
+        }
+
+        function importData() {
+            openModal('importDataModal');
+            updateImportTemplate();
+        }
+
+        function updateImportTemplate() {
+            const importType = document.getElementById('importType').value;
+            const templateDiv = document.getElementById('importTemplate');
+            
+            if (importType === 'creators') {
+                templateDiv.innerHTML = `<strong>CSV Format for Creators:</strong><br>
+handle,platform,email,phone,address,paymentMethod,contactStatus,approvalStatus,totalRevenue<br><br>
+<strong>Example:</strong><br>
+@creator1,TikTok,creator1@email.com,555-0001,123 Main St,PayPal,active,approved,250.00<br>
+@creator2,Instagram,creator2@email.com,555-0002,456 Oak Ave,Venmo,contacted,needs-approval,0.00`;
+            } else if (importType === 'campaigns') {
+                templateDiv.innerHTML = `<strong>CSV Format for Campaigns:</strong><br>
+name,budget,spent,startDate,endDate,status,description<br><br>
+<strong>Example:</strong><br>
+Summer Campaign,5000,3500,2025-06-01,2025-08-31,active,Summer product launch<br>
+Holiday Push,8000,8000,2024-11-01,2024-12-31,completed,Holiday sales campaign`;
+            }
+        }
+
+        function processImport() {
+            const importType = document.getElementById('importType').value;
+            const csvData = document.getElementById('importData').value.trim();
+            
+            if (!csvData) {
+                alert('Please paste CSV data to import');
+                return;
+            }
+            
+            if (!selectedClient && importType !== 'clients') {
+                alert('Please select a client first');
+                return;
+            }
+            
+            try {
+                const lines = csvData.split('\\n').filter(line => line.trim());
+                const headers = lines[0].split(',').map(h => h.trim());
+                const dataLines = lines.slice(1);
+                
+                let imported = 0;
+                let errors = [];
+                
+                if (importType === 'creators') {
+                    dataLines.forEach((line, index) => {
+                        try {
+                            const values = line.split(',').map(v => v.trim());
+                            if (values.length >= 5) {
+                                const creatorId = values[0].toLowerCase().replace('@', '').replace(/\\W/g, '') + '-' + Date.now() + '-' + index;
+                                appData.creators[creatorId] = {
+                                    id: creatorId,
+                                    handle: values[0] || '@unknown',
+                                    platform: values[1] || 'TikTok',
+                                    email: values[2] || '',
+                                    phone: values[3] || '',
+                                    address: values[4] || '',
+                                    paymentMethod: values[5] || 'PayPal',
+                                    contactStatus: values[6] || 'contacted',
+                                    approvalStatus: values[7] || 'needs-approval',
+                                    totalRevenue: parseFloat(values[8]) || 0,
+                                    paymentStatus: 'pending',
+                                    campaigns: [],
+                                    analytics: {
+                                        totalViews: 0,
+                                        totalEngagement: 0,
+                                        avgEngagementRate: 0,
+                                        topPost: 0,
+                                        contentCount: 0
+                                    }
+                                };
+                                imported++;
+                            }
+                        } catch (error) {
+                            errors.push(`Line ${index + 2}: ${error.message}`);
+                        }
+                    });
+                } else if (importType === 'campaigns') {
+                    dataLines.forEach((line, index) => {
+                        try {
+                            const values = line.split(',').map(v => v.trim());
+                            if (values.length >= 6) {
+                                const campaignId = values[0].toLowerCase().replace(/\\s+/g, '-') + '-' + Date.now() + '-' + index;
+                                appData.campaigns[campaignId] = {
+                                    id: campaignId,
+                                    clientId: selectedClient,
+                                    name: values[0] || 'Unnamed Campaign',
+                                    budget: parseFloat(values[1]) || 0,
+                                    spent: parseFloat(values[2]) || 0,
+                                    startDate: values[3] || new Date().toISOString().split('T')[0],
+                                    endDate: values[4] || new Date().toISOString().split('T')[0],
+                                    status: values[5] || 'active',
+                                    description: values[6] || '',
+                                    creators: []
+                                };
+                                
+                                // Add to client
+                                appData.clients[selectedClient].campaigns.push(campaignId);
+                                imported++;
+                            }
+                        } catch (error) {
+                            errors.push(`Line ${index + 2}: ${error.message}`);
+                        }
+                    });
+                }
+                
+                saveData();
+                loadClientData();
+                closeModal('importDataModal');
+                document.getElementById('importData').value = '';
+                
+                let message = `✅ Import completed!\\n\\n• ${imported} ${importType} imported successfully`;
+                if (errors.length > 0) {
+                    message += `\\n• ${errors.length} errors occurred\\n\\nErrors:\\n${errors.join('\\n')}`;
+                }
+                alert(message);
+                
+            } catch (error) {
+                alert(`❌ Import failed: ${error.message}\\n\\nPlease check your CSV format and try again.`);
+            }
         }
 
         function generateBasicReport() {
